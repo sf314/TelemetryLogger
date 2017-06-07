@@ -1,0 +1,59 @@
+Notes on how to use ORSSerialPort
+
+First, you should conform to the ORSSerialPortDelegate up top, and then
+copy/paste the following functions from another project:
+
+    func serialPortWasRemovedFromSystem(_ serialPort: ORSSerialPort()
+    func serialPort(_ serialPort: ORSSerialPort, didReceive data: Data)
+    func serialPortWasOpened(_ serialPort: ORSSerialPort)
+    func serialPortWasClosed(_ serialPort: ORSSerialPort)
+    func serialPort(_ serialPort: ORSSerialPort, didEncounterError error: Error)
+
+And the following variables are necessary:
+
+    let serialPortManager = ORSSerialPortManager.shared()
+    var serialPort: ORSSerialPort? {
+        didSet { // Is this necessary?
+            oldValue?.close()
+            oldValue?.delegate = nil
+            serialPort?.delegate = nil
+        }
+    }
+
+Then, you should create your necessary UI: a pop-up button and push button. The
+pop-up button will need to be binded to three data values. Use the storyboard's
+Bindings inspector to set these.
+
+    Content -> YourController.serialPortManager.availablePorts
+    Content Values -> YourController.serialPortManager.availablePorts.name
+    Selected Object -> YourController.serialPort
+
+In the Bindings inspector, check the 'Bind to' box and select your controller.
+Then change the model key path to represent the paths noted above. Remove 'self'
+because its inferred from the 'bind to'.
+
+The push button should be connected to an IB Action that takes the current
+value of the pop-up button and creates a serialPort object. It must open the
+port and set various values, the most important of which are the baud rate and
+the delegate (set to self). If the port is already open, then the button can
+close the port (thus acting as a toggle). An example is provided:
+
+    if let port = serialPort {
+        if port.isOpen {
+            port.close()
+            print("Closed port")
+            connectButton.title = "Connect"
+        } else {
+            port.open()
+            port.delegate = self // BLOODY HELL
+            port.baudRate = 9600
+            port.numberOfStopBits = 1
+            port.parity = ORSSerialPortParity(rawValue: 0)!
+            port.numberOfStopBits = 1
+            port.dtr = false
+            port.rts = false
+            connectButton.title = "Disconnect"
+            print("Opened port")
+        }
+    }
+

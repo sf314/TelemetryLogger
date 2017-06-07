@@ -21,6 +21,24 @@ class TelemetryLoggerTests: XCTestCase {
         super.tearDown()
     }
     
+    func test_Telemetry_update() {
+        var tel = Telemetry()
+        tel.shouldSave = false
+        
+        // No spaces
+        var result = tel.update(["TESTTLM", "0.81", "-0.87", "-0.95", "0.89\r"])
+        XCTAssert(result)
+        XCTAssert(tel.data[0] == 0.81)
+        XCTAssert(tel.data[3] == 0.89)
+        
+        // With empty bits
+        result = tel.update(["TELEM", "31.2", "", "12.1"])
+        XCTAssert(!result)
+        XCTAssert(tel.data[0] == 31.2)
+        XCTAssert(tel.data[1] == 0.0)
+    }
+    
+    
     func testExample() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
